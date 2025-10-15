@@ -1,0 +1,29 @@
+<script setup>
+// filepath: d:\js\vue\warung-madura\src\components\ui\app-logo.vue
+import { useRouter } from 'vue-router'
+
+// Logo component with navigation capability
+const router = useRouter()
+
+// Navigate to dashboard when logo is clicked
+const navigateToDashboard = () => {
+  router.push('/dashboard')
+}
+</script>
+
+<template>
+  <div 
+    @click="navigateToDashboard" 
+    class="flex items-center gap-2 cursor-pointer transition-transform hover:scale-105"
+  >
+    <!-- Logo Icon -->
+    <div class="rounded-lg bg-indigo-600 w-8 h-8 flex items-center justify-center text-white font-bold">
+      M
+    </div>
+    
+    <!-- Logo Text -->
+    <div class="font-extrabold text-transparent text-2xl bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-400">
+      MASPOS
+    </div>
+  </div>
+</template>
