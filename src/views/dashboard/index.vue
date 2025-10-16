@@ -96,11 +96,12 @@ const handleOpenCart = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gray-100">
     <!-- HEADER with proper container -->
-    <div class="w-full bg-white border-b border-gray-200">
+    <div class="w-full bg-gray-100 border-b border-gray-200">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
         <AppHeader
+        :showSearchBar="true" :showCategoryFilter="true"
           @add-product="handleAddProduct"
           @add-category="handleAddCategory"
           @open-cart="handleOpenCart"

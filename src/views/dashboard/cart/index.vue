@@ -222,7 +222,7 @@ const back = () => router.push("/dashboard/product/index");
           <h1 class="text-2xl font-bold text-gray-800">Cart</h1>
           <div class="flex items-center gap-3">
             <span
-              class="rounded-lg bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700"
+              class="rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700"
             >
               {{ itemCount }} item
             </span>
@@ -258,7 +258,7 @@ const back = () => router.push("/dashboard/product/index");
             type="button"
             @click="openConfirm"
             :disabled="!rows.length"
-            class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Bayar
           </button>

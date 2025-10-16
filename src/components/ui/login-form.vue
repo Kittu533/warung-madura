@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input'
 
 // props & emits tetap kompatibel dgn parent
 const props = defineProps({
-  username: { type: String, required: true },
-  password: { type: String, required: true },
+  username: { type: String, requiblue: true },
+  password: { type: String, requiblue: true },
   loading:  { type: Boolean, default: false }
 })
 const emit = defineEmits(['update:username', 'update:password', 'submit', 'success'])
@@ -57,7 +57,7 @@ async function handleSubmit (e) {
     await auth.login({ username: u.value, password: p.value })
     emit('submit')
     emit('success')
-    const to = route.query.redirect || '/dashboard'
+    const to = route.query.blueirect || '/dashboard'
     router.push(String(to))
   } catch (err) {
     errorText.value =
@@ -75,7 +75,7 @@ async function handleSubmit (e) {
     <!-- Banner error -->
     <div
       v-if="errorText"
-      class="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+      class="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700"
     >
       {{ errorText }}
     </div>
@@ -94,21 +94,21 @@ async function handleSubmit (e) {
           v-model="u"
           placeholder="Masukkan username"
           class="w-full pl-10"
-          :class="fieldErr.username && 'border-red-400 focus-visible:ring-red-300'"
-          required
+          :class="fieldErr.username && 'border-blue-400 focus-visible:ring-blue-300'"
+          requiblue
           autocomplete="username"
           aria-invalid="fieldErr.username ? 'true' : 'false'"
           aria-describedby="username-err"
         />
       </div>
-      <p v-if="fieldErr.username" id="username-err" class="text-xs text-red-600">{{ fieldErr.username }}</p>
+      <p v-if="fieldErr.username" id="username-err" class="text-xs text-blue-600">{{ fieldErr.username }}</p>
     </div>
 
     <!-- Password -->
     <div class="space-y-2">
       <div class="flex items-center justify-between">
         <label for="password" class="text-sm font-medium">Password</label>
-        <a href="#" class="text-xs text-indigo-600 hover:text-indigo-500">Lupa password?</a>
+        <a href="#" class="text-xs text-blue-600 hover:text-blue-500">Lupa password?</a>
       </div>
       <div class="relative">
         <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-400">
@@ -123,8 +123,8 @@ async function handleSubmit (e) {
           v-model="p"
           placeholder="Masukkan password"
           class="w-full pl-10 pr-10"
-          :class="fieldErr.password && 'border-red-400 focus-visible:ring-red-300'"
-          required
+          :class="fieldErr.password && 'border-blue-400 focus-visible:ring-blue-300'"
+          requiblue
           autocomplete="current-password"
           aria-invalid="fieldErr.password ? 'true' : 'false'"
           aria-describedby="password-err"
@@ -144,7 +144,7 @@ async function handleSubmit (e) {
           </svg>
         </button>
       </div>
-      <p v-if="fieldErr.password" id="password-err" class="text-xs text-red-600">{{ fieldErr.password }}</p>
+      <p v-if="fieldErr.password" id="password-err" class="text-xs text-blue-600">{{ fieldErr.password }}</p>
     </div>
 
     <!-- Submit -->
@@ -157,8 +157,5 @@ async function handleSubmit (e) {
       Masuk
     </Button>
 
-    <p class="text-xs text-neutral-500 text-center">
-      Dengan masuk, Anda menyetujui <a href="#" class="text-indigo-600 hover:text-indigo-500">Ketentuan</a> &amp; <a href="#" class="text-indigo-600 hover:text-indigo-500">Privasi</a>.
-    </p>
   </form>
 </template>

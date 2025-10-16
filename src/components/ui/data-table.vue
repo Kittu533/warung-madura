@@ -142,7 +142,7 @@ const visiblePages = computed(() => {
   <div :class="className">
     <!-- Loading -->
     <div v-if="loading" class="flex justify-center py-20">
-      <div class="h-10 w-10 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"></div>
+      <div class="h-10 w-10 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
     </div>
 
     <!-- Tabel -->
@@ -258,7 +258,7 @@ const visiblePages = computed(() => {
             v-for="p in visiblePages"
             :key="p"
             class="rounded-md border px-3 py-1.5"
-            :class="p === current ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'hover:bg-gray-50'"
+            :class="p === current ? 'bg-indigo-50 border-indigo-200 text-blue-700' : 'hover:bg-gray-50'"
             @click="table.setPageIndex(p - 1)"
             :aria-current="p === current ? 'page' : undefined"
           >

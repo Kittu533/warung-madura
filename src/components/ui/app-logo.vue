@@ -14,15 +14,15 @@ const navigateToDashboard = () => {
 <template>
   <div 
     @click="navigateToDashboard" 
-    class="flex items-center gap-2 cursor-pointer transition-transform hover:scale-105"
+    class="flex items-center gap-2 cursor-pointer"
   >
     <!-- Logo Icon -->
-    <div class="rounded-lg bg-indigo-600 w-8 h-8 flex items-center justify-center text-white font-bold">
+    <div class="rounded-lg bg-blue-600 w-8 h-8 flex items-center justify-center text-white font-bold">
       M
     </div>
     
     <!-- Logo Text -->
-    <div class="font-extrabold text-transparent text-2xl bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-400">
+    <div class="font-extrabold text-transparent text-2xl bg-clip-text bg-gradient-to-r from-blue-600 to-blue-400">
       MASPOS
     </div>
   </div>

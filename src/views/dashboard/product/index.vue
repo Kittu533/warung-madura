@@ -6,8 +6,6 @@ import { useCategoriesStore } from '@/stores/categories.store'
 import AppHeader from '@/components/app/app-header.vue'
 import BaseModal from '@/components/modals/base-modal.vue'
 import DataTable from '@/components/ui/data-table.vue'
-
-// === Sonner (Toast) ===
 import { Toaster, toast } from 'vue-sonner'
 import 'vue-sonner/style.css'
 
@@ -15,65 +13,58 @@ const router = useRouter()
 const productsStore = useProductsStore()
 const categoriesStore = useCategoriesStore()
 
-// --- UI/List state
+/* ------------ UI/List state ------------ */
 const loading = ref(false)
 const submitLoading = ref(false)
 const searchQuery = ref('')
-const selectedCategory = ref(null)          // id kategori (number/string) atau null
+const selectedCategory = ref(null)
 
-// --- Modal states
-const showAddModal = ref(false)
-const showEditModal = ref(false)
+/* ------------ Modal (DRY) ------------ 
+  formMode: 'add' | 'edit' | null
+*/
+const formMode = ref(null)
+const showFormModal = ref(false)
 const showDeleteModal = ref(false)
 
-// --- Form states (ADD)
-const imageFile = ref(null)
-const imageLoading = ref(false)
-const imagePreview = ref(null)
-const newProduct = ref({
+/* ------------ Form (DRY) ------------ */
+const productForm = ref({
+  id: null,
   name: '',
   price: '',
   category_id: ''
 })
 const errors = ref({})
 
-// --- Form states (EDIT)
-const editImageFile = ref(null)
-const editImagePreview = ref(null)
-const productToEdit = ref(null)
+/* ------------ Image (DRY) ------------ */
+const fileInputRef = ref(null)
+const imageFile = ref(null)
+const imagePreview = ref(null)
 
-// --- Delete
+/* ------------ Delete ------------ */
 const productToDelete = ref(null)
 
-// --- Template refs
-const fileInputRef = ref(null)
-const editFileInputRef = ref(null)
-
-// --- Table state (server-side)
-const pageIndex = ref(0)                     // 0-based
-const pageSize = ref(10)                     // kunci 10 baris/halaman
+/* ------------ Table state ------------ */
+const pageIndex = ref(0)
+const pageSize = ref(10)
 const sortState = ref({ id: 'name', desc: false })
 
-// --- Sumber data
+/* ------------ Data ------------ */
 const products = computed(() => productsStore.list || [])
 const totalRows = computed(() => productsStore.total || 0)
 const categories = computed(() => categoriesStore.list || [])
 
-// --- Helpers
+/* ------------ Helpers ------------ */
 const formatPrice = (price) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price ?? 0)
 
-const getCategoryName = (categoryId) => {
-  const cat = categories.value.find(c => c.id === categoryId)
-  return cat?.name || 'Tidak ada kategori'
-}
+const getCategoryName = (categoryId) => categories.value.find(c => c.id === categoryId)?.name || 'Tidak ada kategori'
 
-// --- Columns untuk DataTable
+/* ------------ Columns ------------ */
 const productColumns = [
   {
     accessorKey: 'product',
     header: 'Produk',
-    enableSorting: true,              // sort by name (lihat accessorFn)
+    enableSorting: true,
     id: 'name',
     accessorFn: row => row.name,
     cell: (info) => {
@@ -86,12 +77,10 @@ const productColumns = [
                 h('svg', {
                   class: 'h-6 w-6 text-gray-400', fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor'
                 }, [
-                    h('path', {
-                      'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2',
-                      d: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'
-                    })
-                  ])
+                  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2',
+                    d: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' })
                 ])
+              ])
         ]),
         h('div', { class: 'ml-4' }, [
           h('div', { class: 'text-sm font-medium text-gray-900' }, p.name)
@@ -112,41 +101,42 @@ const productColumns = [
     enableSorting: true,
     id: 'category',
     accessorFn: row => getCategoryName(row.category_id),
-    cell: (info) =>
-      h('span', { class: 'inline-flex rounded-full bg-indigo-100 px-2 text-xs font-semibold leading-5 text-indigo-800' },
-        getCategoryName(info.row.original.category_id))
+    cell: (info) => h(
+      'span',
+      { class: 'inline-flex rounded-full bg-blue-100 px-2 text-xs font-semibold leading-5 text-blue-800' },
+      getCategoryName(info.row.original.category_id)
+    )
   },
   {
     id: 'actions',
     header: 'Aksi',
     enableSorting: false,
-    cell: (info) => h('div', { class: 'text-right' }, [
+    cell: (info) => h('div', { class: 'text-left' }, [
       h('button', {
-        class: 'mr-4 text-indigo-600 hover:text-indigo-900',
-        onClick: (e) => { e.stopPropagation(); openEditModal(info.row.original) }
+        class: 'mr-4 text-blue-600 hover:text-blue-900',
+        onClick: (e) => { e.stopPropagation(); openForm('edit', info.row.original) }
       }, 'Edit'),
       h('button', {
         class: 'text-red-600 hover:text-red-900',
-        onClick: (e) => { e.stopPropagation(); openDeleteModal(info.row.original) }
+        onClick: (e) => { e.stopPropagation(); openDelete(info.row.original) }
       }, 'Hapus')
     ])
   }
 ]
 
-// --- Fetch data dari API (server-side)
+/* ------------ Fetchers ------------ */
 async function fetchProducts() {
   loading.value = true
   try {
     await productsStore.fetchProducts({
-      page: pageIndex.value + 1,                        // backend 1-based
-      limit: 10,                                        // enforce 10
+      page: pageIndex.value + 1,
+      limit: pageSize.value,
       sort: sortState.value?.id || 'name',
       order: sortState.value?.desc ? 'desc' : 'asc',
       search: searchQuery.value?.trim() || '',
-      categoryId: selectedCategory.value || ''          // kosongkan jika null
+      categoryId: selectedCategory.value || ''
     })
-  } catch (e) {
-    console.error('Error loading products:', e)
+  } catch {
     toast.error('Gagal memuat daftar produk')
   } finally {
     loading.value = false
@@ -155,19 +145,18 @@ async function fetchProducts() {
 
 async function fetchCategories() {
   try {
-    await categoriesStore.fetchCategories() // untuk lookup nama kategori & filter
-  } catch (e) {
-    console.error('Error loading categories:', e)
+    await categoriesStore.fetchCategories()
+  } catch {
     toast.error('Gagal memuat kategori')
   }
 }
 
-// --- Lifecycle
+/* ------------ Lifecycle ------------ */
 onMounted(async () => {
   await Promise.all([fetchCategories(), fetchProducts()])
 })
 
-// --- Reaksi ke perubahan filter/sort/page
+/* debounce search */
 let searchTimer
 watch(searchQuery, () => {
   clearTimeout(searchTimer)
@@ -177,43 +166,45 @@ watch(searchQuery, () => {
   }, 300)
 })
 
-watch(selectedCategory, () => {
-  pageIndex.value = 0
-  fetchProducts()
-})
+watch(selectedCategory, () => { pageIndex.value = 0; fetchProducts() })
+watch(sortState, () => { pageIndex.value = 0; fetchProducts() })
+watch(pageIndex, () => { fetchProducts() })
 
-watch(sortState, () => {
-  pageIndex.value = 0
-  fetchProducts()
-})
-
-watch(pageIndex, () => {
-  fetchProducts()
-})
-
-// --- Handlers untuk AppHeader
+/* ------------ Header handlers ------------ */
 const handleSearch = (q) => { searchQuery.value = q }
-const handleSelectCategory = (catId) => { selectedCategory.value = catId } // null = semua
+const handleSelectCategory = (catId) => { selectedCategory.value = catId }
 
-// --- Row click (opsional)
-const handleRowClick = (product) => {
-  console.log('Product clicked:', product)
-}
-
-// =========================
-//       ADD HANDLERS
-// =========================
-const openAddModal = () => {
-  // reset form
-  newProduct.value = { name: '', price: '', category_id: '' }
+/* ------------ Modal open/close (DRY) ------------ */
+const resetForm = () => {
+  productForm.value = { id: null, name: '', price: '', category_id: '' }
+  errors.value = {}
   imageFile.value = null
   imagePreview.value = null
-  errors.value = {}
-  showAddModal.value = true
+  if (fileInputRef.value) fileInputRef.value.value = ''
 }
 
-const closeAddModal = () => { showAddModal.value = false }
+const openForm = (mode, product = null) => {
+  formMode.value = mode // 'add' | 'edit'
+  if (mode === 'edit' && product) {
+    productForm.value = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      category_id: product.category_id
+    }
+    imagePreview.value = product.picture_url || null
+    imageFile.value = null
+    if (fileInputRef.value) fileInputRef.value.value = ''
+  } else {
+    resetForm()
+  }
+  showFormModal.value = true
+}
+const closeForm = () => { showFormModal.value = false }
 
+const openDelete = (product) => { productToDelete.value = product; showDeleteModal.value = true }
+
+/* ------------ Image handlers (DRY) ------------ */
 const handleImageChange = (e) => {
   const file = e.target.files?.[0]
   if (!file) return
@@ -222,159 +213,94 @@ const handleImageChange = (e) => {
   reader.onload = () => { imagePreview.value = reader.result }
   reader.readAsDataURL(file)
 }
-
 const removeSelectedImage = () => {
   imageFile.value = null
   imagePreview.value = null
   if (fileInputRef.value) fileInputRef.value.value = ''
 }
 
-const validateAdd = () => {
+/* ------------ Validation (DRY) ------------ */
+const validate = () => {
+  const f = productForm.value
   const errs = {}
-  if (!newProduct.value.name?.trim()) errs.name = 'Nama produk wajib'
-  if (!newProduct.value.price || Number(newProduct.value.price) <= 0) errs.price = 'Harga harus > 0'
-  if (!newProduct.value.category_id) errs.category_id = 'Pilih kategori'
+  if (!f.name?.trim()) errs.name = 'Nama produk wajib'
+  if (!f.price || Number(f.price) <= 0) errs.price = 'Harga harus > 0'
+  if (!f.category_id) errs.category_id = 'Pilih kategori'
   errors.value = errs
   return Object.keys(errs).length === 0
 }
 
-const submitAddProduct = async () => {
-  if (!validateAdd()) {
-    toast.error('Periksa kembali form tambah produk')
+/* ------------ Submit (DRY) ------------ */
+const buildPayload = () => {
+  // backend kamu menerima multipart utk gambar
+  const payload = new FormData()
+  payload.append('name', productForm.value.name)
+  payload.append('price', String(productForm.value.price))
+  payload.append('category_id', String(productForm.value.category_id))
+  if (imageFile.value) payload.append('picture', imageFile.value)
+  return payload
+}
+
+const submitProduct = async () => {
+  if (!validate()) {
+    toast.error('Periksa kembali form')
     return
   }
   submitLoading.value = true
   try {
-    const payload = new FormData()
-    payload.append('name', newProduct.value.name)
-    payload.append('price', String(newProduct.value.price))
-    payload.append('category_id', String(newProduct.value.category_id))
-    if (imageFile.value) payload.append('picture', imageFile.value)
-
-    await toast.promise(
-      productsStore.addProduct(payload),
-      {
+    if (formMode.value === 'add') {
+      await toast.promise(productsStore.addProduct(buildPayload()), {
         loading: 'Menyimpan produk...',
         success: 'Produk berhasil ditambahkan',
         error: 'Gagal menambahkan produk'
-      }
-    )
-    closeAddModal()
-    pageIndex.value = 0
-    await fetchProducts()
-  } catch (e) {
-    console.error('Add product failed:', e)
-  } finally {
-    submitLoading.value = false
-  }
-}
-
-// =========================
-//       EDIT HANDLERS
-// =========================
-const openEditModal = (product) => {
-  productToEdit.value = { ...product } // {id, name, price, category_id, picture_url?}
-  editImageFile.value = null
-  editImagePreview.value = product.picture_url || null
-  errors.value = {}
-  showEditModal.value = true
-}
-
-const closeEditModal = () => { showEditModal.value = false }
-
-const handleEditImageChange = (e) => {
-  const file = e.target.files?.[0]
-  if (!file) return
-  editImageFile.value = file
-  const reader = new FileReader()
-  reader.onload = () => { editImagePreview.value = reader.result }
-  reader.readAsDataURL(file)
-}
-
-const removeEditImage = () => {
-  editImageFile.value = null
-  editImagePreview.value = null
-  if (editFileInputRef.value) editFileInputRef.value.value = ''
-}
-
-const validateEdit = () => {
-  const errs = {}
-  if (!productToEdit.value.name?.trim()) errs.name = 'Nama produk wajib'
-  if (!productToEdit.value.price || Number(productToEdit.value.price) <= 0) errs.price = 'Harga harus > 0'
-  if (!productToEdit.value.category_id) errs.category_id = 'Pilih kategori'
-  errors.value = errs
-  return Object.keys(errs).length === 0
-}
-
-const submitEditProduct = async () => {
-  if (!validateEdit()) {
-    toast.error('Periksa kembali form edit produk')
-    return
-  }
-  submitLoading.value = true
-  try {
-    const payload = new FormData()
-    payload.append('name', productToEdit.value.name)
-    payload.append('price', String(productToEdit.value.price))
-    payload.append('category_id', String(productToEdit.value.category_id))
-    if (editImageFile.value) payload.append('picture', editImageFile.value)
-
-    await toast.promise(
-      productsStore.updateProduct(productToEdit.value.id, payload),
-      {
+      })
+      pageIndex.value = 0
+    } else if (formMode.value === 'edit' && productForm.value.id != null) {
+      await toast.promise(productsStore.updateProduct(productForm.value.id, buildPayload()), {
         loading: 'Memperbarui produk...',
         success: 'Produk berhasil diperbarui',
         error: 'Gagal memperbarui produk'
-      }
-    )
-    closeEditModal()
+      })
+    }
+    closeForm()
     await fetchProducts()
-  } catch (e) {
-    console.error('Update product failed:', e)
+  } catch {
+    // sudah ditangani toast.promise
   } finally {
     submitLoading.value = false
   }
 }
 
-// =========================
-//      DELETE HANDLERS
-// =========================
-const openDeleteModal = (product) => { productToDelete.value = product; showDeleteModal.value = true }
-
+/* ------------ Delete ------------ */
 const confirmDeleteProduct = async () => {
   if (!productToDelete.value) return
   submitLoading.value = true
   try {
-    await toast.promise(
-      productsStore.deleteProduct(productToDelete.value.id),
-      {
-        loading: 'Menghapus produk...',
-        success: 'Produk berhasil dihapus',
-        error: 'Gagal menghapus produk'
-      }
-    )
+    await toast.promise(productsStore.deleteProduct(productToDelete.value.id), {
+      loading: 'Menghapus produk...',
+      success: 'Produk berhasil dihapus',
+      error: 'Gagal menghapus produk'
+    })
     showDeleteModal.value = false
     productToDelete.value = null
-    // kalau halaman jadi kosong setelah delete, mundur satu halaman
     if ((totalRows.value - 1) <= pageIndex.value * pageSize.value && pageIndex.value > 0) {
       pageIndex.value = pageIndex.value - 1
     }
     await fetchProducts()
-  } catch (e) {
-    console.error('Error deleting product:', e)
+  } catch {
+    // toast sudah tampil
   } finally {
     submitLoading.value = false
   }
 }
 
-// --- Events dari DataTable
+/* ------------ DataTable events ------------ */
 const onPageChange = ({ pageIndex: pi }) => { pageIndex.value = pi }
 const onSortChange = (s) => { sortState.value = s || { id: 'name', desc: false } }
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Toaster: idealnya diletakkan sekali di App.vue; sementara ditempatkan di sini agar komponen ini mandiri -->
     <Toaster position="top-center" rich-colors closeButton />
 
     <!-- HEADER -->
@@ -395,15 +321,14 @@ const onSortChange = (s) => { sortState.value = s || { id: 'name', desc: false }
           <h1 class="text-2xl font-bold text-gray-800">Manajemen Produk</h1>
           <button
             type="button"
-            @click="openAddModal"
-            class="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
+            @click="openForm('add')"
+            class="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
           >
             <span class="text-lg">＋</span>
             <span>Tambah Produk</span>
           </button>
         </div>
 
-        <!-- DataTable: serverMode, pageSize 10, pagination ori -->
         <DataTable
           :data="products"
           :columns="productColumns"
@@ -415,15 +340,14 @@ const onSortChange = (s) => { sortState.value = s || { id: 'name', desc: false }
           searchColumn="name"
           className="rounded-xl bg-white"
           emptyMessage="Belum ada produk"
-          @rowClick="handleRowClick"
           @pageChange="onPageChange"
           @sortChange="onSortChange"
         >
           <template #empty-action>
             <button
               type="button"
-              @click="openAddModal"
-              class="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
+              @click="openForm('add')"
+              class="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
             >
               Tambah Produk
             </button>
@@ -432,22 +356,20 @@ const onSortChange = (s) => { sortState.value = s || { id: 'name', desc: false }
       </div>
     </main>
 
-    <!-- ===================== -->
-    <!--      ADD MODAL        -->
-    <!-- ===================== -->
+    <!-- ADD/EDIT FORM MODAL (satu modal untuk keduanya) -->
     <BaseModal
-      :show="showAddModal"
-      title="Tambah Produk"
+      :show="showFormModal"
+      :title="formMode === 'add' ? 'Tambah Produk' : 'Edit Produk'"
       mode="form"
-      @close="closeAddModal"
+      @close="closeForm"
     >
-      <form @submit.prevent="submitAddProduct" class="space-y-4">
+      <form @submit.prevent="submitProduct" class="space-y-4">
         <div>
           <label class="mb-1 block text-sm font-medium text-gray-700">Nama Produk</label>
           <input
-            v-model="newProduct.name"
+            v-model="productForm.name"
             type="text"
-            class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Masukkan nama produk"
           />
           <p v-if="errors.name" class="mt-1 text-xs text-red-600">{{ errors.name }}</p>
@@ -457,10 +379,10 @@ const onSortChange = (s) => { sortState.value = s || { id: 'name', desc: false }
           <div>
             <label class="mb-1 block text-sm font-medium text-gray-700">Harga</label>
             <input
-              v-model.number="newProduct.price"
+              v-model.number="productForm.price"
               type="number"
               min="0"
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="0"
             />
             <p v-if="errors.price" class="mt-1 text-xs text-red-600">{{ errors.price }}</p>
@@ -469,8 +391,8 @@ const onSortChange = (s) => { sortState.value = s || { id: 'name', desc: false }
           <div>
             <label class="mb-1 block text-sm font-medium text-gray-700">Kategori</label>
             <select
-              v-model="newProduct.category_id"
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              v-model="productForm.category_id"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="" disabled>Pilih kategori</option>
               <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
@@ -491,7 +413,7 @@ const onSortChange = (s) => { sortState.value = s || { id: 'name', desc: false }
         <div class="flex justify-end gap-3 pt-4">
           <button
             type="button"
-            @click="closeAddModal"
+            @click="closeForm"
             class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             :disabled="submitLoading"
           >
@@ -499,94 +421,16 @@ const onSortChange = (s) => { sortState.value = s || { id: 'name', desc: false }
           </button>
           <button
             type="submit"
-            class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             :disabled="submitLoading"
           >
-            {{ submitLoading ? 'Menyimpan...' : 'Simpan' }}
+            {{ submitLoading ? (formMode === 'add' ? 'Menyimpan...' : 'Memperbarui...') : (formMode === 'add' ? 'Simpan' : 'Perbarui') }}
           </button>
         </div>
       </form>
     </BaseModal>
 
-    <!-- ===================== -->
-    <!--      EDIT MODAL       -->
-    <!-- ===================== -->
-    <BaseModal
-      :show="showEditModal"
-      title="Edit Produk"
-      mode="form"
-      @close="closeEditModal"
-    >
-      <form v-if="productToEdit" @submit.prevent="submitEditProduct" class="space-y-4">
-        <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700">Nama Produk</label>
-          <input
-            v-model="productToEdit.name"
-            type="text"
-            class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="Masukkan nama produk"
-          />
-          <p v-if="errors.name" class="mt-1 text-xs text-red-600">{{ errors.name }}</p>
-        </div>
-
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label class="mb-1 block text-sm font-medium text-gray-700">Harga</label>
-            <input
-              v-model.number="productToEdit.price"
-              type="number"
-              min="0"
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="0"
-            />
-            <p v-if="errors.price" class="mt-1 text-xs text-red-600">{{ errors.price }}</p>
-          </div>
-
-          <div>
-            <label class="mb-1 block text-sm font-medium text-gray-700">Kategori</label>
-            <select
-              v-model="productToEdit.category_id"
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="" disabled>Pilih kategori</option>
-              <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
-            <p v-if="errors.category_id" class="mt-1 text-xs text-red-600">{{ errors.category_id }}</p>
-          </div>
-        </div>
-
-        <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700">Gambar (opsional)</label>
-          <input ref="editFileInputRef" type="file" accept="image/*" @change="handleEditImageChange" />
-          <div v-if="editImagePreview" class="mt-2 flex items-center gap-3">
-            <img :src="editImagePreview" alt="preview" class="h-16 w-16 rounded object-cover" />
-            <button type="button" @click="removeEditImage" class="text-sm text-red-600 hover:underline">Hapus gambar</button>
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-3 pt-4">
-          <button
-            type="button"
-            @click="closeEditModal"
-            class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            :disabled="submitLoading"
-          >
-            Batal
-          </button>
-          <button
-            type="submit"
-            class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-            :disabled="submitLoading"
-          >
-            {{ submitLoading ? 'Memperbarui...' : 'Perbarui' }}
-          </button>
-        </div>
-      </form>
-    </BaseModal>
-
-    <!-- ===================== -->
-    <!--     DELETE MODAL      -->
-    <!-- ===================== -->
+    <!-- DELETE MODAL -->
     <BaseModal
       :show="showDeleteModal"
       title="Hapus Produk"

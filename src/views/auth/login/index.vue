@@ -24,8 +24,6 @@ const handleLogin = async () => {
 
   try {
     isLoading.value = true
-
-    // ✅ gunakan store login yang memanggil API sungguhan
     await auth.login({
       email: username.value,
       password: password.value

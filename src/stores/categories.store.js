@@ -1,12 +1,15 @@
 import { defineStore } from 'pinia'
 import api from '@/helper/api'
+import { toast } from 'vue-sonner'
 
 export const useCategoriesStore = defineStore('categories', {
   state: () => ({
-    list: [],         // daftar semua kategori
-    selected: null,   // kategori yang sedang dilihat/diedit
+    list: [],
+    selected: null,
     loading: false,
     error: null,
+    total: 0,
+    lastQuery: {},
   }),
 
   getters: {
@@ -17,29 +20,58 @@ export const useCategoriesStore = defineStore('categories', {
   },
 
   actions: {
+    setError(err, fallback) {
+      const payload = err?.response?.data ?? err
+      this.error = payload?.message || fallback
+      return payload
+    },
+
     /**
-     * 🔹 Ambil semua kategori
-     * endpoint: GET /api/v1/category
+     * Validasi nama kategori apakah sudah ada
      */
-    async fetchCategories() {
+    validateCategoryName(name, excludeId = null) {
+      if (!name || typeof name !== 'string') {
+        return 'Nama kategori tidak boleh kosong'
+      }
+
+      const normalizedName = name.trim().toLowerCase()
+      
+      // Cek apakah nama sudah ada (kecuali jika ID sama dengan excludeId)
+      const exists = this.list.some(cat => 
+        cat.name.toLowerCase() === normalizedName && 
+        (excludeId === null || cat.id !== excludeId)
+      )
+      
+      if (exists) {
+        return 'Nama kategori sudah digunakan'
+      }
+      
+      return null // valid
+    },
+
+    /**
+     * Ambil semua kategori dengan server-side pagination
+     * endpoint: GET /api/v1/category
+     * params: { page, limit, sort, order, search }
+     */
+    async fetchCategories(params = {}) {
       this.loading = true
       this.error = null
       try {
-        const res = await api.get('/api/v1/category')
+        this.lastQuery = { ...params }
+        const res = await api.get('/api/v1/category', { params: this.lastQuery })
         this.list = res?.data?.data || []
+        this.total = res?.data?.total || this.list.length
       } catch (err) {
-        this.error =
-          err.response?.data?.message ||
-          err.message ||
-          'Gagal memuat daftar kategori.'
-        console.error('[CategoriesStore] fetchCategories:', this.error)
+        const payload = this.setError(err, 'Gagal memuat daftar kategori')
+        toast.error(this.error || 'Gagal memuat kategori', { id: 'category:fetch' })
       } finally {
         this.loading = false
       }
     },
 
     /**
-     * 🔹 Ambil kategori berdasarkan ID
+     * Ambil kategori berdasarkan ID
      * endpoint: GET /api/v1/category/:id
      */
     async fetchCategoryById(id) {
@@ -49,67 +81,73 @@ export const useCategoriesStore = defineStore('categories', {
         const res = await api.get(`/api/v1/category/${id}`)
         this.selected = res?.data?.data || null
       } catch (err) {
-        this.error =
-          err.response?.data?.message ||
-          err.message ||
-          'Gagal memuat kategori.'
-        console.error('[CategoriesStore] fetchCategoryById:', this.error)
+        const payload = this.setError(err, 'Gagal memuat kategori')
+        toast.error(this.error || 'Gagal memuat kategori', { id: `category:fetch:${id}` })
       } finally {
         this.loading = false
       }
     },
 
     /**
-     * 🔹 Tambah kategori baru
+     * Tambah kategori baru
      * endpoint: POST /api/v1/category
      * payload: { name: "string" }
      */
     async addCategory(payload) {
       this.loading = true
       this.error = null
+      
+      // Validasi nama kategori
+      const validationError = this.validateCategoryName(payload.name)
+      if (validationError) {
+        this.error = validationError
+        toast.error(validationError, { id: 'category:add:validation' })
+        return Promise.reject({ message: validationError })
+      }
+      
       try {
         const res = await api.post('/api/v1/category', payload)
-        // refresh list
-        await this.fetchCategories()
         return res.data
       } catch (err) {
-        this.error =
-          err.response?.data?.message ||
-          err.message ||
-          'Gagal menambah kategori.'
-        console.error('[CategoriesStore] addCategory:', this.error)
-        throw this.error
+        const payload_err = this.setError(err, 'Gagal menambah kategori')
+        toast.error(payload_err?.message || 'Gagal menambah kategori', { id: 'category:add' })
+        throw payload_err
       } finally {
         this.loading = false
       }
     },
 
     /**
-     * 🔹 Update kategori
+     * Update kategori
      * endpoint: PUT /api/v1/category/:id
      * payload: { name: "string" }
      */
     async updateCategory(id, payload) {
       this.loading = true
       this.error = null
+      
+      // Validasi nama kategori (kecuali kategori dengan id yang sama)
+      const validationError = this.validateCategoryName(payload.name, id)
+      if (validationError) {
+        this.error = validationError
+        toast.error(validationError, { id: `category:update:validation:${id}` })
+        return Promise.reject({ message: validationError })
+      }
+      
       try {
         const res = await api.put(`/api/v1/category/${id}`, payload)
-        await this.fetchCategories()
         return res.data
       } catch (err) {
-        this.error =
-          err.response?.data?.message ||
-          err.message ||
-          'Gagal memperbarui kategori.'
-        console.error('[CategoriesStore] updateCategory:', this.error)
-        throw this.error
+        const payload_err = this.setError(err, 'Gagal memperbarui kategori')
+        toast.error(payload_err?.message || 'Gagal memperbarui kategori', { id: `category:update:${id}` })
+        throw payload_err
       } finally {
         this.loading = false
       }
     },
 
     /**
-     * 🔹 Hapus kategori
+     * Hapus kategori
      * endpoint: DELETE /api/v1/category/:id
      */
     async deleteCategory(id) {
@@ -119,12 +157,9 @@ export const useCategoriesStore = defineStore('categories', {
         await api.delete(`/api/v1/category/${id}`)
         this.list = this.list.filter((item) => item.id !== id)
       } catch (err) {
-        this.error =
-          err.response?.data?.message ||
-          err.message ||
-          'Gagal menghapus kategori.'
-        console.error('[CategoriesStore] deleteCategory:', this.error)
-        throw this.error
+        const payload = this.setError(err, 'Gagal menghapus kategori')
+        toast.error(payload?.message || 'Gagal menghapus kategori', { id: `category:delete:${id}` })
+        throw payload
       } finally {
         this.loading = false
       }

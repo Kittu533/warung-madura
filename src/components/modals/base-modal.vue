@@ -29,9 +29,9 @@ const sizeClass = computed(() => ({
 }[props.size] || 'max-w-md'))
 
 const color = computed(() => {
-  if (props.mode === 'confirm') return { bg: 'bg-red-100', text: 'text-red-600' }
-  if (props.mode === 'success') return { bg: 'bg-green-100', text: 'text-green-600' }
-  return { bg: 'bg-blue-100', text: 'text-blue-600' } // info
+  if (props.mode === 'confirm') return { bg: 'bg-gray-50', text: 'text-gray-600', button: 'bg-red-600' }
+  if (props.mode === 'success') return { bg: 'bg-gray-50', text: 'text-gray-600', button: 'bg-green-600' }
+  return { bg: 'bg-gray-50', text: 'text-gray-600', button: 'bg-blue-600' } // info
 })
 
 const iconPath = computed(() => {
@@ -53,47 +53,43 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 <template>
   <div
     v-if="show"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
     @click.self="closeOnBackdrop && emit('close')"
   >
     <div
-      class="w-full animate-fade-in rounded-2xl bg-white p-6 shadow-xl mx-4"
+      class="w-full animate-fade-in rounded-lg bg-white shadow-xl mx-4"
       :class="sizeClass"
       role="dialog"
       aria-modal="true"
     >
-      <!-- Close (X) -->
-      <button
-        v-if="showClose"
-        class="absolute right-4 top-4 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-        @click="emit('close')"
-        aria-label="Tutup"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M6.225 4.811L4.811 6.225 10.586 12l-5.775 5.775 1.414 1.414L12 13.414l5.775 5.775 1.414-1.414L13.414 12l5.775-5.775-1.414-1.414L12 10.586 6.225 4.811z"/>
-        </svg>
-      </button>
-
       <!-- Header -->
-      <header v-if="title || message || mode !== 'form'" class="mb-4 flex items-start gap-3">
-        <div v-if="mode !== 'form'" :class="[color.bg, color.text, 'rounded-full p-3 shrink-0']">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-            <path :d="iconPath" />
-          </svg>
+      <div class="px-6 py-4 border-b border-gray-100">
+        <div class="flex justify-between items-center">
+          <h3 v-if="title" class="text-lg font-medium text-gray-800">{{ title }}</h3>
+          <button
+            v-if="showClose"
+            class="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            @click="emit('close')"
+            aria-label="Tutup"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-        <div class="flex-1">
-          <h3 v-if="title" class="text-lg font-semibold text-gray-800">{{ title }}</h3>
-          <p v-if="message" class="mt-1 text-sm text-gray-500">{{ message }}</p>
-        </div>
-      </header>
+      </div>
 
       <!-- Body -->
-      <section>
+      <div class="px-6 py-4">
+        <p v-if="message" class="mb-4 text-gray-600">{{ message }}</p>
         <slot />
-      </section>
+      </div>
 
       <!-- Footer -->
-      <footer class="mt-6 flex justify-end gap-3" v-if="$slots.footer || mode !== 'form'">
+      <div 
+        class="px-6 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-3" 
+        v-if="$slots.footer || mode !== 'form'"
+      >
         <!-- Custom footer -->
         <slot name="footer" />
 
@@ -102,14 +98,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           <template v-if="mode === 'confirm'">
             <button
               @click="emit('cancel')"
-              class="rounded-lg border border-red-500 px-5 py-2 font-medium text-red-500 transition hover:bg-red-50 disabled:opacity-60"
+              class="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded hover:bg-gray-50 transition-colors disabled:opacity-60"
               :disabled="loading"
             >
               {{ cancelText }}
             </button>
             <button
               @click="emit('confirm')"
-              class="rounded-lg bg-red-600 px-5 py-2 font-medium text-white transition hover:bg-red-700 disabled:opacity-60"
+              class="px-4 py-2 bg-red-600 text-white font-medium rounded hover:bg-red-700 transition-colors disabled:opacity-60"
               :disabled="loading"
             >
               {{ loading ? 'Memproses...' : confirmText }}
@@ -119,21 +115,21 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           <template v-else-if="mode === 'info' || mode === 'success'">
             <button
               @click="emit('close')"
-              class="rounded-lg bg-indigo-600 px-5 py-2 font-medium text-white transition hover:bg-indigo-700"
+              :class="`px-4 py-2 ${color.button} text-white font-medium rounded hover:opacity-90 transition-colors`"
             >
               {{ closeText }}
             </button>
           </template>
         </template>
-      </footer>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
 @keyframes fade-in {
-  from { opacity: 0; transform: scale(0.95) }
+  from { opacity: 0; transform: scale(0.98) }
   to   { opacity: 1; transform: scale(1) }
 }
-.animate-fade-in { animation: fade-in 0.15s ease-out }
+.animate-fade-in { animation: fade-in 0.2s ease-out }
 </style>
