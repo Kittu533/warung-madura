@@ -269,19 +269,21 @@ const back = () => router.push("/dashboard/product/index");
     <!-- Modal KONFIRMASI BAYAR -->
     <BaseModal
       :show="showConfirm"
-      title="Pembayaran"
+      title="Konfirmasi Pembayaran"
       mode="confirm"
       size="sm"
       :loading="paying"
-      :confirmText="paying ? 'Memproses...' : 'Bayar'"
-      :cancelText="'Tidak Jadi'"
+      :confirmText="paying ? 'Memproses...' : 'Bayar Sekarang'"
+      :cancelText="'Batal'"
       @close="cancelPay"
       @cancel="cancelPay"
       @confirm="confirmPay"
     >
       <div class="p-1 text-center">
-        <p class="text-sm text-gray-600 mb-2">Yakin ingin melanjutkan pembayaran?</p>
-        <div class="text-sm text-gray-500">Total</div>
+        <p class="text-sm text-gray-700 mb-2">
+          Apakah Anda yakin ingin melanjutkan pembayaran untuk pesanan ini?
+        </p>
+        <div class="text-sm text-gray-500">Total Tagihan</div>
         <div class="text-xl font-bold text-gray-900">{{ rp(grandTotal) }}</div>
       </div>
     </BaseModal>
