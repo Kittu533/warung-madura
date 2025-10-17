@@ -21,29 +21,26 @@ const emit = defineEmits(['update:modelValue', 'search'])
 const searchQuery = ref(props.modelValue)
 let debounceTimeout = null
 
-// Update local searchQuery when modelValue changes externally
 watch(() => props.modelValue, (newValue) => {
   searchQuery.value = newValue
 })
 
-// Handle input changes with debounce
 const handleInput = (event) => {
   const value = event.target.value
   
-  // Update local state immediately for responsive UI
   searchQuery.value = value
   
-  // Clear previous timeout
+
   if (debounceTimeout) {
     clearTimeout(debounceTimeout)
   }
   
-  // Set new timeout
+
   debounceTimeout = setTimeout(() => {
-    // Emit the updated value after debounce delay
+
     emit('update:modelValue', value)
     
-    // If the query is not empty, also trigger search
+
     if (value.trim().length > 0) {
       emit('search')
     }
@@ -51,7 +48,6 @@ const handleInput = (event) => {
 }
 
 const handleKeyEnter = () => {
-  // Clear any pending debounce and search immediately
   if (debounceTimeout) {
     clearTimeout(debounceTimeout)
     debounceTimeout = null
@@ -92,7 +88,7 @@ const clearSearch = () => {
       />
     </svg>
     
-    <!-- Clear button (X) - only shows when there's text -->
+
     <button
       v-if="searchQuery"
       @click="clearSearch"

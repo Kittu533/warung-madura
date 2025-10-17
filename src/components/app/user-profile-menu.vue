@@ -34,7 +34,6 @@ const handleLogout = async () => {
   router.push('/auth/login')
 }
 
-// Add click outside directive
 const clickOutside = {
   mounted(el, binding) {
     el._clickOutside = (event) => {
@@ -132,6 +131,3 @@ const clickOutside = {
   </div>
 </template>
 
-<style scoped>
-/* Custom directive for click outside */
-</style>

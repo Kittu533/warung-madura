@@ -13,7 +13,7 @@ const emit = defineEmits(["add-to-cart", "delete-product", "deleted"]);
 
 const productsStore = useProductsStore();
 
-// state
+
 const adding = ref(false);
 const deleting = ref(false);
 const imgBroken = ref(false);
@@ -24,10 +24,6 @@ const onAddToCart = async () => {
   if (adding.value) return;
   adding.value = true;
   try {
-    // Hapus line ini:
-    // productsStore.addToCart(props.product);
-    
-    // Hanya emit event:
     emit("add-to-cart", props.product);
   } finally {
     adding.value = false;

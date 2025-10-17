@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-// props & emits tetap kompatibel dgn parent
+
 const props = defineProps({
   username: { type: String, requiblue: true },
   password: { type: String, requiblue: true },
@@ -17,14 +17,14 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 
-// --- state lokal agar input responsif ---
+
 const u = ref(props.username || '')
 const p = ref(props.password || '')
 
-// sinkron ke parent (realtime)
+
 watch(u, v => emit('update:username', v))
 watch(p, v => emit('update:password', v))
-// kalau parent ubah props dari luar, ikutkan balik
+
 watch(() => props.username, v => { if (v !== u.value) u.value = v })
 watch(() => props.password, v => { if (v !== p.value) p.value = v })
 

@@ -11,7 +11,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.6 0.22 27); /* Primary merah hangat khas warung */
+  --primary: oklch(45.457% 0.31135 265.276); /* Primary merah hangat khas warung */
   --primary-foreground: oklch(0.99 0 0); /* teks putih */
 
   --secondary: oklch(0.97 0 0); /* Secondary netral terang untuk surface sekunder */
@@ -28,7 +28,7 @@
 
   --border: oklch(0.92 0 0);
   --input: oklch(0.92 0 0);
-  --ring: oklch(0.72 0.18 27); /* Ring bernuansa brand */
+  --ring: oklch(45.641% 0.31003 266.137); /* Ring bernuansa brand */
 
   /* Chart palette: merah brand, hijau sukses, amber, netral */
   --chart-1: oklch(0.62 0.22 27); /* penjualan */

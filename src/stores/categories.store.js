@@ -26,17 +26,14 @@ export const useCategoriesStore = defineStore('categories', {
       return payload
     },
 
-    /**
-     * Validasi nama kategori apakah sudah ada
-     */
+
     validateCategoryName(name, excludeId = null) {
       if (!name || typeof name !== 'string') {
         return 'Nama kategori tidak boleh kosong'
       }
 
       const normalizedName = name.trim().toLowerCase()
-      
-      // Cek apakah nama sudah ada (kecuali jika ID sama dengan excludeId)
+  
       const exists = this.list.some(cat => 
         cat.name.toLowerCase() === normalizedName && 
         (excludeId === null || cat.id !== excludeId)
@@ -46,14 +43,10 @@ export const useCategoriesStore = defineStore('categories', {
         return 'Nama kategori sudah digunakan'
       }
       
-      return null // valid
+      return null 
     },
 
-    /**
-     * Ambil semua kategori dengan server-side pagination
-     * endpoint: GET /api/v1/category
-     * params: { page, limit, sort, order, search }
-     */
+
     async fetchCategories(params = {}) {
       this.loading = true
       this.error = null
@@ -70,10 +63,7 @@ export const useCategoriesStore = defineStore('categories', {
       }
     },
 
-    /**
-     * Ambil kategori berdasarkan ID
-     * endpoint: GET /api/v1/category/:id
-     */
+
     async fetchCategoryById(id) {
       this.loading = true
       this.error = null
@@ -88,11 +78,6 @@ export const useCategoriesStore = defineStore('categories', {
       }
     },
 
-    /**
-     * Tambah kategori baru
-     * endpoint: POST /api/v1/category
-     * payload: { name: "string" }
-     */
     async addCategory(payload) {
       this.loading = true
       this.error = null
@@ -117,11 +102,7 @@ export const useCategoriesStore = defineStore('categories', {
       }
     },
 
-    /**
-     * Update kategori
-     * endpoint: PUT /api/v1/category/:id
-     * payload: { name: "string" }
-     */
+
     async updateCategory(id, payload) {
       this.loading = true
       this.error = null
@@ -146,10 +127,7 @@ export const useCategoriesStore = defineStore('categories', {
       }
     },
 
-    /**
-     * Hapus kategori
-     * endpoint: DELETE /api/v1/category/:id
-     */
+
     async deleteCategory(id) {
       this.loading = true
       this.error = null

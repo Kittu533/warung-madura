@@ -14,8 +14,8 @@ const props = defineProps({
 
 const emit = defineEmits(['add-to-cart', 'delete-product'])
 
-// Create an array for skeleton placeholders
-const skeletonCount = 10 // Number of skeleton cards to show while loading
+
+const skeletonCount = 10 
 const skeletonArray = Array(skeletonCount).fill(null)
 </script>
 

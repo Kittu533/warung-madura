@@ -6,7 +6,6 @@ const props = defineProps({
   title: { type: String, default: '' },
   message: { type: String, default: '' },
 
-  // info | confirm | form | success
   mode: { type: String, default: 'info' },
 
   confirmText: { type: String, default: 'OK' },
@@ -14,9 +13,9 @@ const props = defineProps({
   closeText: { type: String, default: 'Tutup' },
 
   loading: { type: Boolean, default: false },
-  size: { type: String, default: 'md' }, // sm | md | lg
-  showClose: { type: Boolean, default: true }, // tombol X
-  closeOnBackdrop: { type: Boolean, default: true }, // klik di luar untuk tutup
+  size: { type: String, default: 'md' }, 
+  showClose: { type: Boolean, default: true }, 
+  closeOnBackdrop: { type: Boolean, default: true }, 
   closeOnEsc: { type: Boolean, default: true },
 })
 

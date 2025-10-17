@@ -23,11 +23,9 @@ export const useAuthStore = defineStore('auth', {
 
         if (!token) throw new Error('Token tidak ditemukan')
 
-        // simpan token & user ke store
         this.token = token
         this.user = user
 
-        // ✅ simpan token ke Local Storage selalu
         localStorage.setItem('user-token', token)
 
         return { user, token }

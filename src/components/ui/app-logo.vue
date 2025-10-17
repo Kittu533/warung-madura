@@ -1,11 +1,9 @@
 <script setup>
-// filepath: d:\js\vue\warung-madura\src\components\ui\app-logo.vue
+
 import { useRouter } from 'vue-router'
 
-// Logo component with navigation capability
 const router = useRouter()
 
-// Navigate to dashboard when logo is clicked
 const navigateToDashboard = () => {
   router.push('/dashboard')
 }
